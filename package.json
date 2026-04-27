@@ -1,0 +1,19 @@
+{
+  "name": "salgados-whatsapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servico Node para conectar ao WhatsApp e enviar mensagens",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "send": "node src/send-message.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.7"
+  }
+}

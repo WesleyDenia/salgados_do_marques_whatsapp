@@ -1,0 +1,18 @@
+services:
+  whatsapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: salgados-whatsapp
+    restart: unless-stopped
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    shm_size: 1gb
+    volumes:
+      - whatsapp_session:/app/.wwebjs_auth
+
+volumes:
+  whatsapp_session:
