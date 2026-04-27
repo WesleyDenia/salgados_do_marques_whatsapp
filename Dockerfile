@@ -20,10 +20,12 @@ RUN npm ci --omit=dev
 
 COPY . .
 
+RUN chmod +x /app/docker-entrypoint.sh
+
 RUN mkdir -p /app/.wwebjs_auth \
     && chown -R node:node /app
 
 USER node
 
-ENTRYPOINT ["dumb-init", "--"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["npm", "start"]

@@ -6,5 +6,6 @@ Dockerfile
 docker-compose.yml
 .env
 .env.*
+secrets/
 coverage
 .wwebjs_auth

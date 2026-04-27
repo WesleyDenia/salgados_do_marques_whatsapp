@@ -9,11 +9,17 @@ services:
       - "${PORT:-3000}:3000"
     environment:
       PORT: ${PORT:-3000}
-      WHATSAPP_INTERNAL_TOKEN: ${WHATSAPP_INTERNAL_TOKEN:-}
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      WHATSAPP_INTERNAL_TOKEN_FILE: /run/secrets/whatsapp_token
     shm_size: 1gb
     volumes:
       - whatsapp_session:/app/.wwebjs_auth
+    secrets:
+      - whatsapp_token
 
 volumes:
   whatsapp_session:
+
+secrets:
+  whatsapp_token:
+    file: ./secrets/whatsapp_token.txt
