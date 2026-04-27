@@ -22,6 +22,8 @@ WHATSAPP_TO=5511999999999
 WHATSAPP_MESSAGE=Oi, teste
 ```
 
+Esse arquivo é opcional. O `docker-compose.yml` do serviço não depende dele para subir; ele só é útil se você quiser passar `WHATSAPP_TO` e `WHATSAPP_MESSAGE` como variáveis locais no comando `npm run send`.
+
 ## Como executar
 
 Inicia a sessao do WhatsApp e mantem o processo ativo:
@@ -41,23 +43,3 @@ Ou usando variaveis de ambiente:
 ```bash
 WHATSAPP_TO=5511999999999 WHATSAPP_MESSAGE="Mensagem de teste" npm run send
 ```
-
-## Deploy com Docker
-
-Build e execucao do servico:
-
-```bash
-docker compose up -d --build
-```
-
-Enviar uma mensagem usando o container:
-
-```bash
-docker compose run --rm whatsapp npm run send -- 5511999999999 "Mensagem de teste"
-```
-
-Notas:
-
-- A sessao do WhatsApp fica persistida no volume `whatsapp_session`
-- O container usa `chromium` do sistema e nao depende do download do browser do Puppeteer
-- Se quiser usar outro binario, ajuste `PUPPETEER_EXECUTABLE_PATH`
