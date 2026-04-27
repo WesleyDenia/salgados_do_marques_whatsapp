@@ -16,6 +16,8 @@ services:
       - whatsapp_session:/app/.wwebjs_auth
     secrets:
       - whatsapp_token
+    networks:
+      - backend
 
 volumes:
   whatsapp_session:
@@ -23,3 +25,8 @@ volumes:
 secrets:
   whatsapp_token:
     file: ./secrets/whatsapp_token.txt
+
+networks:
+  backend:
+    external: true
+    name: salgados_backend_net

@@ -27,6 +27,12 @@ WHATSAPP_MESSAGE=Oi, teste
 
 Esse arquivo é opcional. O `docker-compose.yml` não depende dele para subir; ele é usado para definir porta, token interno e variáveis do envio manual.
 
+Quando o serviço estiver no Docker e ligado à rede compartilhada `salgados_backend_net`, o Laravel deve apontar para:
+
+```env
+WHATSAPP_BASE_URL=http://salgados-whatsapp:3000
+```
+
 ## Como executar
 
 Inicia a sessao do WhatsApp e mantem o processo ativo:
