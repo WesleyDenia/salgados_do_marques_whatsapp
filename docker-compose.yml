@@ -5,7 +5,11 @@ services:
       dockerfile: Dockerfile
     container_name: salgados-whatsapp
     restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
     environment:
+      PORT: ${PORT:-3000}
+      WHATSAPP_INTERNAL_TOKEN: ${WHATSAPP_INTERNAL_TOKEN:-}
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
     shm_size: 1gb
     volumes:

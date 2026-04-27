@@ -1,10 +1,15 @@
 'use strict';
 
 const { startClient } = require('./whatsapp');
+const { startServer } = require('./server');
 
 async function main() {
-  await startClient();
-  console.log('Service started. Use "npm run send" to send a message.');
+  startClient().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+  startServer();
 }
 
 if (require.main === module) {

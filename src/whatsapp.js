@@ -8,6 +8,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 let client;
 let readyPromise;
 let initialized = false;
+let ready = false;
 
 function normalizeRecipient(recipient) {
   const value = String(recipient || '').trim();
@@ -55,14 +56,17 @@ function createClient() {
   });
 
   client.on('ready', () => {
+    ready = true;
     console.log('WhatsApp client is ready.');
   });
 
   client.on('auth_failure', (message) => {
+    ready = false;
     console.error('WhatsApp authentication failed:', message);
   });
 
   client.on('disconnected', (reason) => {
+    ready = false;
     console.warn('WhatsApp client disconnected:', reason);
   });
 
@@ -104,11 +108,17 @@ async function shutdownClient() {
     client = undefined;
     readyPromise = undefined;
     initialized = false;
+    ready = false;
   }
+}
+
+function isClientReady() {
+  return ready;
 }
 
 module.exports = {
   createClient,
+  isClientReady,
   normalizeRecipient,
   sendTextMessage,
   shutdownClient,
