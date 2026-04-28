@@ -86,3 +86,11 @@ docker compose up -d --build
 ```
 
 O volume `whatsapp_session` preserva a sessão autenticada entre reinicios.
+
+Para reiniciar o serviço, use o menu interativo:
+
+```bash
+./deploy.sh
+```
+
+O script mostra opções para limpar a sessão ou manter a sessão atual antes de subir o container.
