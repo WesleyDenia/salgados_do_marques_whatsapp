@@ -5,12 +5,18 @@ require('dotenv').config();
 const fs = require('fs/promises');
 const path = require('path');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
 let client;
 let readyPromise;
 let initialized = false;
 let ready = false;
+let sessionStatus = 'idle';
+let lastError = null;
+let currentQr = null;
+let currentQrDataUrl = null;
+let currentQrGeneratedAt = null;
 const AUTH_DATA_PATH = path.resolve(process.env.WHATSAPP_AUTH_PATH || './.wwebjs_auth/');
 const AUTH_SESSION_DIR = path.join(AUTH_DATA_PATH, 'session-salgados-whatsapp');
 const CHROMIUM_LOCK_FILES = [
@@ -62,22 +68,53 @@ function createClient() {
   });
 
   client.on('qr', (qr) => {
+    sessionStatus = 'qr';
+    currentQr = qr;
+    currentQrGeneratedAt = new Date().toISOString();
+    currentQrDataUrl = null;
     console.log('Scan this QR code to authenticate:');
     qrcode.generate(qr, { small: true });
+
+    QRCode.toDataURL(qr, {
+      margin: 1,
+      scale: 8,
+      errorCorrectionLevel: 'M',
+    })
+      .then((dataUrl) => {
+        currentQrDataUrl = dataUrl;
+      })
+      .catch((error) => {
+        console.warn('Failed to generate QR code data URL:', error.message);
+      });
   });
 
   client.on('ready', () => {
     ready = true;
+    sessionStatus = 'ready';
+    currentQr = null;
+    currentQrDataUrl = null;
+    currentQrGeneratedAt = null;
+    lastError = null;
     console.log('WhatsApp client is ready.');
   });
 
   client.on('auth_failure', (message) => {
     ready = false;
+    sessionStatus = 'auth_failure';
+    currentQr = null;
+    currentQrDataUrl = null;
+    currentQrGeneratedAt = null;
+    lastError = message;
     console.error('WhatsApp authentication failed:', message);
   });
 
   client.on('disconnected', (reason) => {
     ready = false;
+    sessionStatus = 'disconnected';
+    currentQr = null;
+    currentQrDataUrl = null;
+    currentQrGeneratedAt = null;
+    lastError = reason;
     console.warn('WhatsApp client disconnected:', reason);
   });
 
@@ -122,6 +159,7 @@ async function startClient() {
 
   if (!initialized) {
     initialized = true;
+    sessionStatus = 'initializing';
     try {
       await currentClient.initialize();
     } catch (error) {
@@ -136,8 +174,10 @@ async function startClient() {
         resetClientState();
         const retryClient = createClient();
         initialized = true;
+        sessionStatus = 'initializing';
         await retryClient.initialize();
       } else {
+        lastError = error.message;
         resetClientState();
         throw error;
       }
@@ -169,8 +209,22 @@ function isClientReady() {
   return ready;
 }
 
+function getSessionSnapshot() {
+  return {
+    status: sessionStatus,
+    ready,
+    initialized,
+    hasQr: Boolean(currentQrDataUrl),
+    qr: currentQr,
+    qrDataUrl: currentQrDataUrl,
+    qrGeneratedAt: currentQrGeneratedAt,
+    lastError,
+  };
+}
+
 module.exports = {
   createClient,
+  getSessionSnapshot,
   isClientReady,
   normalizeRecipient,
   sendTextMessage,

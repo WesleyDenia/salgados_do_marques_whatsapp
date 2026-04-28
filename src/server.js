@@ -2,7 +2,7 @@
 
 const http = require('http');
 
-const { isClientReady, sendTextMessage } = require('./whatsapp');
+const { getSessionSnapshot, isClientReady, sendTextMessage } = require('./whatsapp');
 
 const PORT = Number(process.env.PORT || 3000);
 const INTERNAL_TOKEN = process.env.WHATSAPP_INTERNAL_TOKEN || '';
@@ -120,18 +120,35 @@ function startServer(port = PORT) {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
-    if (req.method === 'GET' && url.pathname === '/health') {
-      jsonResponse(res, 200, {
-        ok: true,
-        whatsappReady: isClientReady(),
+  if (req.method === 'GET' && url.pathname === '/health') {
+    jsonResponse(res, 200, {
+      ok: true,
+      whatsappReady: isClientReady(),
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && url.pathname === '/session') {
+    if (!isAuthorized(req)) {
+      jsonResponse(res, 401, {
+        ok: false,
+        error: 'Unauthorized',
       });
       return;
     }
 
-    if (req.method === 'POST' && url.pathname === '/send') {
-      handleSend(req, res);
-      return;
-    }
+    jsonResponse(res, 200, {
+      ok: true,
+      whatsappReady: isClientReady(),
+      session: getSessionSnapshot(),
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/send') {
+    handleSend(req, res);
+    return;
+  }
 
     jsonResponse(res, 404, {
       ok: false,
