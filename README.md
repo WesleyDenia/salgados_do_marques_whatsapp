@@ -30,15 +30,15 @@ Esse arquivo é opcional. O `docker-compose.yml` não depende dele para subir; e
 
 ### Hosts do Docker
 
-Quando os serviços estiverem na rede compartilhada `salgados_backend_net`, use estes hosts internos:
+Se os dois serviços estiverem em compose files separados, use o host publicado na máquina:
 
-- Do Laravel no container `salgados-app` para o WhatsApp: `http://salgados-whatsapp:3000`
-- Do WhatsApp no container `salgados-whatsapp` para o backend: `http://nginx/api/v1/webhooks/whatsapp/messages`
+- Do Laravel para o WhatsApp: `http://host.docker.internal:3000`
+- Do WhatsApp para o backend: `http://host.docker.internal/api/v1/webhooks/whatsapp/messages`
 
-Isso significa que:
+Se os dois serviços estiverem na mesma rede Docker compartilhada, também pode usar os nomes internos:
 
-- O backend Laravel deve usar `WHATSAPP_BASE_URL=http://salgados-whatsapp:3000`
-- O serviço Node deve usar `WHATSAPP_BACKEND_URL=http://nginx/api/v1/webhooks/whatsapp/messages`
+- Do Laravel para o WhatsApp: `http://salgados-whatsapp:3000`
+- Do WhatsApp para o backend: `http://nginx/api/v1/webhooks/whatsapp/messages`
 
 No uso local, você pode manter `127.0.0.1` nas variáveis acima enquanto os containers expõem as portas para a máquina host.
 

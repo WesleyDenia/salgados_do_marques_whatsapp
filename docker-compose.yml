@@ -11,10 +11,12 @@ services:
       PORT: ${PORT:-3000}
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       WHATSAPP_INTERNAL_TOKEN_FILE: /run/secrets/whatsapp_token
-      WHATSAPP_BACKEND_URL: http://nginx/api/v1/webhooks/whatsapp/messages
+      WHATSAPP_BACKEND_URL: http://host.docker.internal/api/v1/webhooks/whatsapp/messages
     shm_size: 1gb
     volumes:
       - whatsapp_session:/app/.wwebjs_auth
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     secrets:
       - whatsapp_token
     networks:
