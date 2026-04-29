@@ -17,6 +17,8 @@ let lastError = null;
 let currentQr = null;
 let currentQrDataUrl = null;
 let currentQrGeneratedAt = null;
+const BACKEND_WEBHOOK_URL = process.env.WHATSAPP_BACKEND_URL || '';
+const BACKEND_INTERNAL_TOKEN = process.env.WHATSAPP_INTERNAL_TOKEN || '';
 const AUTH_DATA_PATH = path.resolve(process.env.WHATSAPP_AUTH_PATH || './.wwebjs_auth/');
 const AUTH_SESSION_DIR = path.join(AUTH_DATA_PATH, 'session-salgados-whatsapp');
 const CHROMIUM_LOCK_FILES = [
@@ -42,6 +44,92 @@ function normalizeRecipient(recipient) {
   }
 
   return `${digits}@c.us`;
+}
+
+async function getContactName(message) {
+  try {
+    const contact = await message.getContact();
+
+    return contact?.pushname || contact?.name || contact?.shortName || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function buildInboundPayload(message, contactName) {
+  const body = typeof message.body === 'string' ? message.body : '';
+
+  return {
+    message_id: message.id?._serialized || null,
+    chat_id: message.from || null,
+    from: message.from || null,
+    to: message.to || null,
+    author: message.author || null,
+    body,
+    type: message.type || null,
+    timestamp: typeof message.timestamp === 'number' ? message.timestamp : null,
+    is_group: Boolean(message.isGroupMsg),
+    has_media: Boolean(message.hasMedia),
+    media_mime_type: message.mimeType || null,
+    contact_name: contactName || null,
+    source: 'salgados-whatsapp',
+  };
+}
+
+async function forwardIncomingMessage(message) {
+  if (!BACKEND_WEBHOOK_URL) {
+    return;
+  }
+
+  if (!message || message.fromMe) {
+    return;
+  }
+
+  const contactName = await getContactName(message);
+  const payload = buildInboundPayload(message, contactName);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (BACKEND_INTERNAL_TOKEN) {
+      headers['X-Internal-Token'] = BACKEND_INTERNAL_TOKEN;
+    }
+
+    const response = await fetch(BACKEND_WEBHOOK_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const responseBody = await response.text().catch(() => '');
+      console.warn('Failed to forward inbound WhatsApp message:', {
+        status: response.status,
+        body: responseBody,
+      });
+      return;
+    }
+
+    const result = await response.json().catch(() => null);
+    console.log('Inbound WhatsApp message queued in backend.', {
+      messageId: payload.message_id,
+      chatId: payload.chat_id,
+      backendItemId: result?.item_id || null,
+    });
+  } catch (error) {
+    console.warn('Error while forwarding inbound WhatsApp message:', {
+      messageId: message?.id?._serialized || null,
+      error: error.message,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function createClient() {
@@ -96,6 +184,10 @@ function createClient() {
     currentQrGeneratedAt = null;
     lastError = null;
     console.log('WhatsApp client is ready.');
+  });
+
+  client.on('message_create', (message) => {
+    void forwardIncomingMessage(message);
   });
 
   client.on('auth_failure', (message) => {

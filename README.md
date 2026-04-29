@@ -21,6 +21,7 @@ Crie um arquivo `.env` com este formato:
 PORT=3000
 WHATSAPP_INTERNAL_TOKEN=trocar-este-token
 WHATSAPP_API_URL=http://127.0.0.1:3000
+WHATSAPP_BACKEND_URL=http://127.0.0.1:8000/api/v1/webhooks/whatsapp/messages
 WHATSAPP_TO=5511999999999
 WHATSAPP_MESSAGE=Oi, teste
 ```
@@ -61,6 +62,8 @@ O servico expõe:
 
 - `GET /health`
 - `POST /send`
+
+Quando `WHATSAPP_BACKEND_URL` estiver definido, mensagens recebidas no WhatsApp são enviadas para o backend e entram na fila interna como itens `received`.
 
 Exemplo de chamada:
 
