@@ -8,7 +8,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     environment:
-      PORT: ${PORT:-3000}
+      PORT: "3000"
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       WHATSAPP_INTERNAL_TOKEN_FILE: /run/secrets/whatsapp_token
       WHATSAPP_BACKEND_URL: http://host.docker.internal/api/v1/webhooks/whatsapp/messages

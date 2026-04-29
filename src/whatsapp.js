@@ -132,6 +132,20 @@ async function forwardIncomingMessage(message) {
   }
 }
 
+async function handleIncomingMessage(message, source = 'message') {
+  if (!message || message.fromMe || message.isStatus) {
+    return;
+  }
+
+  console.log('Incoming WhatsApp message detected.', {
+    source,
+    messageId: message.id?._serialized || null,
+    chatId: message.from || null,
+  });
+
+  await forwardIncomingMessage(message);
+}
+
 function createClient() {
   if (client) {
     return client;
@@ -186,8 +200,12 @@ function createClient() {
     console.log('WhatsApp client is ready.');
   });
 
+  client.on('message', (message) => {
+    void handleIncomingMessage(message, 'message');
+  });
+
   client.on('message_create', (message) => {
-    void forwardIncomingMessage(message);
+    void handleIncomingMessage(message, 'message_create');
   });
 
   client.on('auth_failure', (message) => {

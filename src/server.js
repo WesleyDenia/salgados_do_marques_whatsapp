@@ -4,7 +4,24 @@ const http = require('http');
 
 const { getSessionSnapshot, isClientReady, sendTextMessage } = require('./whatsapp');
 
-const PORT = Number(process.env.PORT || 3000);
+function resolvePort(value, fallback = 3000) {
+  const raw = String(value ?? '').trim();
+
+  if (raw === '') {
+    return fallback;
+  }
+
+  const port = Number(raw);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    console.warn(`[server] Invalid PORT value "${raw}", falling back to ${fallback}.`);
+    return fallback;
+  }
+
+  return port;
+}
+
+const PORT = resolvePort(process.env.PORT, 3000);
 const INTERNAL_TOKEN = process.env.WHATSAPP_INTERNAL_TOKEN || '';
 
 function jsonResponse(res, statusCode, payload) {
@@ -117,6 +134,7 @@ async function handleSend(req, res) {
 }
 
 function startServer(port = PORT) {
+  const resolvedPort = resolvePort(port, PORT);
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
@@ -156,8 +174,8 @@ function startServer(port = PORT) {
     });
   });
 
-  server.listen(port, () => {
-    console.log(`HTTP server listening on port ${port}`);
+  server.listen(resolvedPort, () => {
+    console.log(`HTTP server listening on port ${resolvedPort}`);
     if (!INTERNAL_TOKEN) {
       console.warn('WHATSAPP_INTERNAL_TOKEN is not set. /send is currently unprotected.');
     }
