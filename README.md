@@ -28,11 +28,19 @@ WHATSAPP_MESSAGE=Oi, teste
 
 Esse arquivo é opcional. O `docker-compose.yml` não depende dele para subir; ele é usado para definir porta, token interno e variáveis do envio manual.
 
-Quando o serviço estiver no Docker e ligado à rede compartilhada `salgados_backend_net`, o Laravel deve apontar para:
+### Hosts do Docker
 
-```env
-WHATSAPP_BASE_URL=http://salgados-whatsapp:3000
-```
+Quando os serviços estiverem na rede compartilhada `salgados_backend_net`, use estes hosts internos:
+
+- Do Laravel no container `salgados-app` para o WhatsApp: `http://salgados-whatsapp:3000`
+- Do WhatsApp no container `salgados-whatsapp` para o backend: `http://nginx/api/v1/webhooks/whatsapp/messages`
+
+Isso significa que:
+
+- O backend Laravel deve usar `WHATSAPP_BASE_URL=http://salgados-whatsapp:3000`
+- O serviço Node deve usar `WHATSAPP_BACKEND_URL=http://nginx/api/v1/webhooks/whatsapp/messages`
+
+No uso local, você pode manter `127.0.0.1` nas variáveis acima enquanto os containers expõem as portas para a máquina host.
 
 ## Como executar
 
